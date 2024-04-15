@@ -24,14 +24,19 @@ pub trait ProductType {
     }
 }
 
-impl<const M: usize, const N: usize> DirectProduct<M, N> {
+pub struct DirectProduct<const M: usize, const N: usize, F> {
+    v: V<M, F>,
+    w: V<N, F>,
+}
+
+impl<const M: usize, const N: usize, F> DirectProduct<M, N, F> {
     #[allow(non_snake_case)]
-    pub fn pi_V(&self) -> V<M> {
+    pub fn pi_V(&self) -> V<M, F> {
         self.v
     }
 
     #[allow(non_snake_case)]
-    pub fn pi_W(&self) -> V<N> {
+    pub fn pi_W(&self) -> V<N, F> {
         self.w
     }
 }
@@ -54,20 +59,12 @@ impl<const M: usize, const N: usize> DirectProduct<M, N> {
 /// }
 /// ```
 
-pub struct DirectProduct<const M: usize, const N: usize> {
-    v: V<M>,
-    w: V<N>,
-}
-
-impl<const M: usize, const N: usize> DirectProduct<M, N> {
-    pub fn new(v: V<M>, w: V<N>) -> Self {
-        DirectProduct { v, w }
-    }
-}
-
-impl<const M: usize, const N: usize> Add for DirectProduct<M, N> {
+impl<const M: usize, const N: usize, F> Add for DirectProduct<M, N, F>
+where
+    F: Add<Output = F> + Default + Copy,
+{
     type Output = Self;
-    fn add(self, other: DirectProduct<M, N>) -> Self::Output {
+    fn add(self, other: DirectProduct<M, N, F>) -> Self::Output {
         DirectProduct {
             v: self.pi_V() + other.pi_V(),
             w: self.pi_W() + other.pi_W(),
@@ -75,9 +72,12 @@ impl<const M: usize, const N: usize> Add for DirectProduct<M, N> {
     }
 }
 
-impl<const M: usize, const N: usize> Mul<f64> for DirectProduct<M, N> {
+impl<const M: usize, const N: usize, F> Mul<F> for DirectProduct<M, N, F>
+where
+    F: Mul<Output = F> + Default + Copy,
+{
     type Output = Self;
-    fn mul(self, scalar: f64) -> Self::Output {
+    fn mul(self, scalar: F) -> Self::Output {
         DirectProduct {
             v: self.pi_V() * scalar,
             w: self.pi_W() * scalar,
