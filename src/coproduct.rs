@@ -1,87 +1,93 @@
 use super::*;
 
-pub enum UniqueCoproduct<X, Y> {
-    X(X),
-    Y(Y),
-}
-
-pub trait UniqueCoproductType {
+pub trait Coproduct
+where
+    Self: Sized,
+{
     type X;
     type Y;
-    type Z;
+
+    fn construct(x: Option<Self::X>, y: Option<Self::Y>) -> Self;
 
     #[allow(non_snake_case)]
-    fn f_X(x: Self::X) -> Self::Z;
-
-    #[allow(non_snake_case)]
-    fn f_Y(y: Self::Y) -> Self::Z;
-
-    fn f(p: UniqueCoproduct<Self::X, Self::Y>) -> Self::Z {
-        match p {
-            UniqueCoproduct::X(x) => Self::f_X(x),
-            UniqueCoproduct::Y(y) => Self::f_Y(y),
-        }
-    }
-}
-
-pub enum UniqueDirectSum<const M: usize, const N: usize, F> {
-    V(V<M, F>),
-    W(V<N, F>),
-}
-
-impl<const M: usize, const N: usize, F> UniqueDirectSum<M, N, F> {
-    #[allow(non_snake_case)]
-    pub fn iota_V(v: V<M, F>) -> UniqueDirectSum<M, N, F> {
-        UniqueDirectSum::V(v)
+    fn iota_X(x: Option<Self::X>) -> Self {
+        Self::construct(x, None)
     }
 
     #[allow(non_snake_case)]
-    pub fn iota_W(w: V<N, F>) -> UniqueDirectSum<M, N, F> {
-        UniqueDirectSum::W(w)
+    fn iota_Y(y: Option<Self::Y>) -> Self {
+        Self::construct(None, y)
+    }
+
+    #[allow(non_snake_case)]
+    fn get_X_via_tag(&self) -> Option<Self::X>;
+
+    #[allow(non_snake_case)]
+    fn get_Y_via_tag(&self) -> Option<Self::Y>;
+
+    #[allow(non_snake_case)]
+    fn f<Z: Add<Output = Z>>(
+        &self,
+        f_X: impl Fn(Option<Self::X>) -> Z,
+        f_Y: impl Fn(Option<Self::Y>) -> Z,
+    ) -> Z {
+        f_X(self.get_X_via_tag()) + f_Y(self.get_Y_via_tag())
     }
 }
 
-/// The following would be the implementation of the `UniqueCoproductType` trait for the `UniqueDirectSum` type, but this won't compile due to Rust complaining.
-/// ```
-/// impl<const M: usize, const N: usize, const P: usize, F> UniqueCoproductType for UniqueDirectSum<M, N, F> {
-///     type X = V<M, F>;
-///     type Y = V<N, F>;
-///     type Z = V<P, F>;
+pub struct DirectSum<const M: usize, const N: usize, F> {
+    v: Option<V<M, F>>,
+    w: Option<V<N, F>>,
+}
 
-///     #[allow(non_snake_case)]
-///     fn f_X(x: Self::X) -> Self::Z {
-///         unimplemented!()
-///     }
+impl<const M: usize, const N: usize, F> Coproduct for DirectSum<M, N, F>
+where
+    F: Copy,
+{
+    type X = V<M, F>;
+    type Y = V<N, F>;
 
-///     #[allow(non_snake_case)]
-///     fn f_Y(y: Self::Y) -> Self::Z {
-///         unimplemented!()
-///     }
-/// }
+    fn construct(v: Option<Self::X>, w: Option<Self::Y>) -> Self {
+        assert!(v.is_some() || w.is_some());
+        DirectSum { v, w }
+    }
 
-impl<const M: usize, const N: usize, F> Add for UniqueDirectSum<M, N, F>
+    fn get_X_via_tag(&self) -> Option<Self::X> {
+        self.v
+    }
+
+    fn get_Y_via_tag(&self) -> Option<Self::Y> {
+        self.w
+    }
+}
+
+impl<const M: usize, const N: usize, F> Add for DirectSum<M, N, F>
 where
     F: Add<Output = F> + Default + Copy,
 {
     type Output = Self;
-    fn add(self, other: UniqueDirectSum<M, N, F>) -> Self::Output {
-        match (self, other) {
-            (UniqueDirectSum::V(v), UniqueDirectSum::V(w)) => UniqueDirectSum::V(V::add(v, w)),
-            (UniqueDirectSum::W(v), UniqueDirectSum::W(w)) => UniqueDirectSum::W(V::add(v, w)),
-            _ => panic!("Cannot add V and W with Rust `UniqueDirectSum`!"),
-        }
+    fn add(self, other: DirectSum<M, N, F>) -> Self::Output {
+        DirectSum::construct(
+            self.v
+                .zip(other.v)
+                .map(|(v, other_v)| v + other_v)
+                .or(self.v)
+                .or(other.v),
+            self.w
+                .zip(other.w)
+                .map(|(w, other_w)| w + other_w)
+                .or(self.w)
+                .or(other.w),
+        )
     }
 }
 
-impl<const M: usize, const N: usize, F> Mul<F> for UniqueDirectSum<M, N, F>
+impl<const M: usize, const N: usize, F> Mul<F> for DirectSum<M, N, F>
 where
     F: Mul<Output = F> + Default + Copy,
 {
     type Output = Self;
     fn mul(self, scalar: F) -> Self::Output {
-        match self {
-            UniqueDirectSum::V(v) => UniqueDirectSum::V(v * scalar),
-            UniqueDirectSum::W(w) => UniqueDirectSum::W(w * scalar),
-        }
+        DirectSum::construct(self.v.map(|v| v * scalar), self.w.map(|w| w * scalar))
     }
 }

@@ -1,63 +1,51 @@
 use super::*;
 
-pub struct Product<X, Y> {
-    pub x: X,
-    pub y: Y,
-}
-
-pub trait ProductType {
+pub trait ProductType
+where
+    Self: Sized,
+{
     type X;
     type Y;
-    type Z;
+
+    fn construct(x: Self::X, y: Self::Y) -> Self;
 
     #[allow(non_snake_case)]
-    fn f_X(z: Self::Z) -> Self::X;
+    fn pi_X(&self) -> Self::X;
 
     #[allow(non_snake_case)]
-    fn f_Y(z: Self::Z) -> Self::Y;
+    fn pi_Y(&self) -> Self::Y;
 
-    fn f(z: Self::Z) -> Product<Self::X, Self::Y> {
-        Product {
-            x: Self::f_X(z),
-            y: Self::f_Y(z),
-        }
+    #[allow(non_snake_case)]
+    fn f<Z>(z: &Z, f_X: impl Fn(&Z) -> Self::X, f_Y: impl Fn(&Z) -> Self::Y) -> Self {
+        Self::construct(f_X(z), f_Y(z))
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct DirectProduct<const M: usize, const N: usize, F> {
     v: V<M, F>,
     w: V<N, F>,
 }
 
-impl<const M: usize, const N: usize, F> DirectProduct<M, N, F> {
-    #[allow(non_snake_case)]
-    pub fn pi_V(&self) -> V<M, F> {
+impl<const M: usize, const N: usize, F> ProductType for DirectProduct<M, N, F>
+where
+    F: Copy,
+{
+    type X = V<M, F>;
+    type Y = V<N, F>;
+
+    fn construct(v: Self::X, w: Self::Y) -> Self {
+        DirectProduct { v, w }
+    }
+
+    fn pi_X(&self) -> Self::X {
         self.v
     }
 
-    #[allow(non_snake_case)]
-    pub fn pi_W(&self) -> V<N, F> {
+    fn pi_Y(&self) -> Self::Y {
         self.w
     }
 }
-
-/// The following would be the implementation of the `ProductType` trait for the
-/// `DirectProduct` type, but this won't compile due to Rust complaining
-/// ```
-/// impl<const M: usize, const N: usize, const P: usize> ProductType for DirectProduct<M, N> {
-///     type X = V<M>;
-///     type Y = V<N>;
-///     type Z = V<P>;
-
-///     fn f_X(z: Self::Z) -> Self::X {
-///         unimplemented!()
-///     }
-
-///     fn f_Y(z: Self::Z) -> Self::Y {
-///         unimplemented!()
-///     }
-/// }
-/// ```
 
 impl<const M: usize, const N: usize, F> Add for DirectProduct<M, N, F>
 where
@@ -65,10 +53,7 @@ where
 {
     type Output = Self;
     fn add(self, other: DirectProduct<M, N, F>) -> Self::Output {
-        DirectProduct {
-            v: self.pi_V() + other.pi_V(),
-            w: self.pi_W() + other.pi_W(),
-        }
+        DirectProduct::construct(self.pi_X() + other.pi_X(), self.pi_Y() + other.pi_Y())
     }
 }
 
@@ -78,9 +63,6 @@ where
 {
     type Output = Self;
     fn mul(self, scalar: F) -> Self::Output {
-        DirectProduct {
-            v: self.pi_V() * scalar,
-            w: self.pi_W() * scalar,
-        }
+        DirectProduct::construct(self.pi_X() * scalar, self.pi_Y() * scalar)
     }
 }
