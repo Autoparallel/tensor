@@ -12,7 +12,7 @@ pub mod product;
 pub mod tensor;
 pub mod unique_coproduct;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct V<const M: usize, F>([F; M]);
 
 impl<const M: usize, F> Default for V<M, F>
