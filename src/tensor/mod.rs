@@ -1,6 +1,8 @@
-use std::ops::AddAssign;
+use core::ops::AddAssign;
 
 use super::*;
+
+pub mod macros;
 
 pub struct Tensor<const M: usize, const N: usize, F>
 where
@@ -153,88 +155,5 @@ where
             }
         }
         product
-    }
-}
-
-pub struct Tensor3<const M: usize, const N: usize, const P: usize, F>
-where
-    [(); M * N * P]:,
-{
-    /// This set up makes the first index into `coefficients` the "rows" and
-    /// second the "columns"
-    coefficients: V<M, V<N, V<P, F>>>,
-}
-
-impl<const M: usize, const N: usize, const P: usize, F> Default for Tensor3<M, N, P, F>
-where
-    [(); M * N * P]:,
-    F: Default + Copy,
-{
-    fn default() -> Self {
-        let coefficients = V::<M, V<N, V<P, F>>>::default();
-        Tensor3 { coefficients }
-    }
-}
-
-macro_rules! tensor {
-    ($name:ident, $($const:ident),+) => {
-        pub struct $name<$(const $const: usize),+, F>
-        where F: Default +  Copy,
-        {
-            pub coefficients: coeff_builder!($($const),+; F),
-        }
-
-        impl<$(const $const: usize),+, F: Default + Copy> Default for  $name<$($const),+, F> {
-            fn default() -> Self {
-                let coefficients = <def_builder!($($const),+; F)>::default();
-                $name { coefficients }
-            }
-
-        }
-
-        impl<$(const $const: usize),+, F> std::fmt::Debug for $name<$($const),+, F>
-        where
-            F: Default + Copy + std::fmt::Debug,
-        {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                f.debug_struct(stringify!($name))
-                    .field("coefficients", &self.coefficients)
-                    .finish()
-            }
-        }
-    }
-}
-
-macro_rules! coeff_builder {
-    ($const:ident; $expr:ty) => {
-        V<$const, $expr>
-    };
-    ($const:ident, $($rest:ident),+; $expr:ty) => {
-        V<$const, coeff_builder!($($rest),+; $expr)>
-    };
-}
-
-macro_rules! def_builder {
-    ($const:ident; $expr:ty) => {
-        V::<$const, $expr>
-    };
-    ($const:ident, $($rest:ident),+; $expr:ty) => {
-        V::<$const, def_builder!($($rest),+; $expr)>
-    };
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    tensor!(Tensor2, M, N);
-    tensor!(Tensor3, M, N, P);
-
-    #[test]
-    fn arbitrary_tensor() {
-        let tensor = Tensor2::<2, 3, f64>::default();
-        println!("{:?}", tensor.coefficients);
-
-        let tensor = Tensor3::<2, 3, 4, f64>::default();
-        println!("{:?}", tensor.coefficients);
     }
 }

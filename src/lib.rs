@@ -1,8 +1,12 @@
 #![allow(unstable_features)]
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
+#![no_std]
 
-use std::ops::{Add, Mul};
+use core::{
+    fmt::{Debug, Formatter, Result},
+    ops::{Add, Mul},
+};
 
 use coproduct::{Coproduct, DirectSum};
 use product::{DirectProduct, ProductType};
