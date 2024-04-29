@@ -24,11 +24,46 @@ pub fn multilinear_map_derive(input: TokenStream) -> TokenStream {
         quote! { #param_name: V<#ident, F> }
     });
 
+    let loop_indices: Vec<_> = (0..const_generics.len())
+        .map(|i| Ident::new(&format!("i_{}", i), proc_macro2::Span::call_site()))
+        .collect();
+
+    let component_product = loop_indices.iter().zip(0..).map(|(index, i)| {
+        let param_name = Ident::new(&format!("v_{}", i), index.span());
+        quote! { * #param_name.0[#index] }
+    });
+
+    // Add the calculation to the innermost loop
+    let coefficient_access =
+        loop_indices
+            .iter()
+            .fold(quote! { self.coefficients }, |acc, index| {
+                quote! { #acc.0[#index] }
+            });
+
+    let mut loop_nest = quote! {
+        sum += #coefficient_access #(#component_product)*;
+    };
+
+    for (index, ident) in loop_indices.iter().rev().zip(const_generics.iter().rev()) {
+        loop_nest = quote! {
+            for #index in 0..#ident {
+                #loop_nest
+            }
+        };
+    }
+
+    loop_nest = quote! {
+        #loop_nest
+
+    };
+
     let expanded = quote! {
         impl #impl_generics #struct_name #ty_generics #where_clause {
             pub fn multilinear_map(&self, #(#input_params),*) -> F {
-                // Your implementation logic goes here
-                todo!()
+                let mut sum = F::default();
+                #loop_nest
+                sum
             }
         }
     };
