@@ -6,6 +6,7 @@ authors = ["Colin Roberts <colin@autoparallel.xyz>"]
 description = "the main extensor crate for building arbitrary valent tensors and more."
 keywords = ["tensor", "algebra", "math", "macros"]
 license-file = "LICENSE"
+readme = "README.md"
 
 [dependencies]
 extensor-macros = { path = "macros/", version = "0.1.0" }
