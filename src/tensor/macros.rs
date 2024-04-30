@@ -122,7 +122,7 @@ mod tests {
 
     #[test]
     fn create_arbitrary_tensor() {
-        log();
+        // log();
         let tensor = Tensor2::<2, 3, f64>::default();
         debug!("{:?}", tensor.coefficients);
 
@@ -132,7 +132,7 @@ mod tests {
 
     #[test]
     fn add_tensors() {
-        log();
+        // log();
         let mut tensor1 = Tensor2::<2, 3, f64>::default();
         for i in 0..2 {
             for j in 0..3 {
@@ -153,7 +153,7 @@ mod tests {
 
     #[test]
     fn scalar_mul_tensor() {
-        log();
+        // log();
         let mut tensor1 = Tensor2::<2, 3, f64>::default();
         for i in 0..2 {
             for j in 0..3 {

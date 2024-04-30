@@ -1,4 +1,5 @@
 use proc_macro::TokenStream;
+use proc_macro2::Span;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput, GenericParam, Ident};
 
@@ -10,6 +11,7 @@ pub fn multilinear_map_derive(input: TokenStream) -> TokenStream {
     let generics = &ast.generics;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
+    // Type?
     let const_generics: Vec<_> = generics
         .params
         .iter()
@@ -19,8 +21,22 @@ pub fn multilinear_map_derive(input: TokenStream) -> TokenStream {
         })
         .collect();
 
+    // use proc_macro2::{Ident, Span};
+    //
+    // Span::call_site()
+    //
+    // pub fn multilinear_map(
+    //     &self,
+    //     v_0: V<M, F>,
+    //     v_1: V<N, F>,
+    //     v_2: V<P, F>,
+    // )
     let input_params = const_generics.iter().enumerate().map(|(i, ident)| {
-        let param_name = Ident::new(&format!("v_{}", i), ident.span());
+        // Is this identifier actually scoped correctly to the function? Or, by using
+        // ::new raw, have we just made a global or something? span => scope?
+        //
+        // let param_name = Ident::new(&format!("v_{}", i), ident.span());
+        let param_name = Ident::new(&format!("v_{}", i), Span::call_site());
         quote! { #param_name: V<#ident, F> }
     });
 
