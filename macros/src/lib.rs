@@ -76,7 +76,7 @@ pub fn multilinear_map_derive(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         impl #impl_generics #struct_name #ty_generics #where_clause {
-            pub fn multilinear_map(&self, #(#input_params),*) -> F { // [a-Z]+ (1+) [a-Z]*, (0+)
+            pub fn multilinear_map(&self, #(#input_params),*) -> F {
                 let mut sum = F::default();
                 #loop_nest
                 sum

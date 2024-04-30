@@ -1,25 +1,29 @@
 use super::*;
 
+// TODO: Could probably just assign a valence to the tensors and use N0, N1, N2,
+// etc. as dims
+
 #[macro_export]
 macro_rules! tensor {
-    ($name:ident, $($const:ident),+) => {
-        pub struct $name<$(const $const: usize),+, F>
-        where F: Default +  Copy,
+    ($name:ident, $($consts:ident),+) => {
+        #[derive(tensor_macros::MultilinearMap)]
+        pub struct $name<$(const $consts: usize),+, F>
+        where F: Default + Copy + AddAssign + Mul<F, Output = F>,
         {
-            pub coefficients: coeff_builder!($($const),+; F),
+            pub coefficients: coeff_builder!($($consts),+; F),
         }
 
-        impl<$(const $const: usize),+, F: Default + Copy> Default for  $name<$($const),+, F> {
+        impl<$(const $consts: usize),+, F: Default + Copy + AddAssign + Mul<F, Output = F>> Default for  $name<$($consts),+, F> {
             fn default() -> Self {
-                let coefficients = <def_builder!($($const),+; F)>::default();
+                let coefficients = <def_builder!($($consts),+; F)>::default();
                 $name { coefficients }
             }
 
         }
 
-        impl<$(const $const: usize),+, F> Debug for $name<$($const),+, F>
+        impl<$(const $consts: usize),+, F> Debug for $name<$($consts),+, F>
         where
-            F: Default + Copy + Debug,
+            F: Default + Copy + Debug + AddAssign + Mul<F, Output = F>,
         {
             fn fmt(&self, f: &mut Formatter<'_>) -> Result {
                 f.debug_struct(stringify!($name))
@@ -28,34 +32,31 @@ macro_rules! tensor {
             }
         }
 
-        impl<$(const $const: usize),+, F> Add for $name<$($const),+, F>
+        impl<$(const $consts: usize),+, F> Add for $name<$($consts),+, F>
         where
-            F: Add<Output = F> + Copy + Default,
+            F: Add<Output = F> + Copy + Default + AddAssign + Mul<F, Output = F>,
         {
             type Output = Self;
 
             fn add(self, other: Self) -> Self::Output {
                 let mut result = Self::default();
-                add_tensors!(result.coefficients, self.coefficients, other.coefficients; $($const),+);
+                add_tensors!(result.coefficients, self.coefficients, other.coefficients; $($consts),+);
                 result
             }
         }
 
-        impl<$(const $const: usize),+, F> Mul<F> for $name<$($const),+, F>
+        impl<$(const $consts: usize),+, F> Mul<F> for $name<$($consts),+, F>
         where
-            F: Mul<Output = F> + Copy + Default,
+            F: Mul<Output = F> + Copy + Default + AddAssign,
         {
             type Output = Self;
 
             fn mul(self, scalar: F) -> Self::Output {
                 let mut result = Self::default();
-                scalar_mul_tensor!(result.coefficients, self.coefficients, scalar; $($const),+);
+                scalar_mul_tensor!(result.coefficients, self.coefficients, scalar; $($consts),+);
                 result
             }
         }
-
-
-
     }
 }
 
@@ -103,11 +104,14 @@ macro_rules! scalar_mul_tensor {
     };
 }
 
+tensor!(TensorTester, M, N, P);
+
 #[cfg(test)]
 mod tests {
 
     use super::*;
     tensor!(Tensor2, M, N);
+
     tensor!(Tensor3, M, N, P);
 
     use log::{debug, info};
@@ -161,12 +165,10 @@ mod tests {
         let tensor2 = tensor1 * scalar;
         info!("output: {:?}", tensor2.coefficients);
     }
-<<<<<<< Updated upstream
-=======
 
     #[test]
     fn multilinear_map() {
-        // log();
+        log();
         //           / 1    0     0 \
         // tensor =  \ 0    1     0 /
         let mut tensor = Tensor2::<2, 3, f64>::default();
@@ -200,5 +202,4 @@ mod tests {
         info!("output: {:?}", output);
         assert_eq!(output, 1.0);
     }
->>>>>>> Stashed changes
 }
