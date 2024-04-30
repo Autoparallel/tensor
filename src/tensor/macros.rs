@@ -118,7 +118,7 @@ mod tests {
 
     #[test]
     fn create_arbitrary_tensor() {
-        log();
+        // log();
         let tensor = Tensor2::<2, 3, f64>::default();
         debug!("{:?}", tensor.coefficients);
 
@@ -128,7 +128,7 @@ mod tests {
 
     #[test]
     fn add_tensors() {
-        log();
+        // log();
         let mut tensor1 = Tensor2::<2, 3, f64>::default();
         for i in 0..2 {
             for j in 0..3 {
@@ -149,7 +149,7 @@ mod tests {
 
     #[test]
     fn scalar_mul_tensor() {
-        log();
+        // log();
         let mut tensor1 = Tensor2::<2, 3, f64>::default();
         for i in 0..2 {
             for j in 0..3 {
@@ -161,4 +161,44 @@ mod tests {
         let tensor2 = tensor1 * scalar;
         info!("output: {:?}", tensor2.coefficients);
     }
+<<<<<<< Updated upstream
+=======
+
+    #[test]
+    fn multilinear_map() {
+        // log();
+        //           / 1    0     0 \
+        // tensor =  \ 0    1     0 /
+        let mut tensor = Tensor2::<2, 3, f64>::default();
+        tensor.coefficients.0[0].0[0] = 1.0;
+        tensor.coefficients.0[1].0[1] = 1.0;
+        debug!("tensor: {:?}", tensor);
+
+        //        / -1 \
+        // v_0 =  \  1 /
+        let mut v_0 = V::default();
+        v_0.0[0] = -1.0;
+        v_0.0[1] = 1.0;
+        debug!("v_0: {:?}", v_0);
+
+        //        / 1 \
+        //       |  2  |
+        // v_1 =  \ 3 /
+        let mut v_1 = V::default();
+        v_1.0[0] = 1.0;
+        v_1.0[1] = 2.0;
+        v_1.0[2] = 3.0;
+        debug!("v_1: {:?}", v_1);
+
+        //                      / 1 \
+        // tensor.map(_,v_1) =  \ 2 /
+        //
+        // then the next is:
+        //                                     / 1 \
+        // tensor.map(v_0, v_1) = < -1    1 >  \ 2 /   = -1 + 2 = 1
+        let output = tensor.multilinear_map(v_0, v_1);
+        info!("output: {:?}", output);
+        assert_eq!(output, 1.0);
+    }
+>>>>>>> Stashed changes
 }
