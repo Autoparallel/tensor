@@ -7,6 +7,7 @@ description = "the main extensor crate for building arbitrary valent tensors and
 keywords = ["tensor", "algebra", "math", "macros"]
 license-file = "LICENSE"
 readme = "README.md"
+rust-version = "1.80.0"
 
 [dependencies]
 extensor-macros = { path = "macros/", version = "0.1.0" }
