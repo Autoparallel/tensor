@@ -6,7 +6,7 @@ use super::*;
 #[macro_export]
 macro_rules! tensor {
     ($name:ident, $($consts:ident),+) => {
-        #[derive(tensor_macros::MultilinearMap)]
+        #[derive(extensor_macros::MultilinearMap)]
         pub struct $name<$(const $consts: usize),+, F>
         where F: Default + Copy + AddAssign + Mul<F, Output = F>,
         {

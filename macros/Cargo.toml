@@ -1,7 +1,11 @@
 [package]
-name = "tensor_macros"
+name = "extensor-macros"
 version = "0.1.0"
 edition = "2021"
+authors = ["Colin Roberts <colin@autoparallel.xyz>"]
+description = "proc macro backend for the extensor crate."
+keywords = ["tensor", "algebra", "math", "macros"]
+license-file = "../LICENSE"
 
 [lib]
 proc-macro = true

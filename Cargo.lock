@@ -89,6 +89,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "extensor"
+version = "0.1.0"
+dependencies = [
+ "env_logger",
+ "extensor-macros",
+ "log",
+]
+
+[[package]]
+name = "extensor-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "humantime"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -162,24 +180,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
-]
-
-[[package]]
-name = "tensor"
-version = "0.1.0"
-dependencies = [
- "env_logger",
- "log",
- "tensor_macros",
-]
-
-[[package]]
-name = "tensor_macros"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
