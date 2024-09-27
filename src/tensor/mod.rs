@@ -2,8 +2,10 @@ use core::ops::AddAssign;
 
 use super::*;
 
+pub mod extension;
 pub mod macros;
 
+#[derive(Clone)]
 pub struct Tensor<const M: usize, const N: usize, F>
 where
     [(); M * N]:,
