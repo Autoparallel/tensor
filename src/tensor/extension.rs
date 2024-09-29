@@ -1,3 +1,5 @@
+//! Something cool to do here with recursion
+
 use core::{
     marker::PhantomData,
     ops::{Add, Mul},
