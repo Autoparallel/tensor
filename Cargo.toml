@@ -8,11 +8,3 @@ keywords = ["tensor", "algebra", "math", "macros"]
 license-file = "LICENSE"
 readme = "README.md"
 rust-version = "1.80.0"
-
-[dependencies]
-extensor-macros = { path = "macros/", version = "0.1.0" }
-
-
-[dev-dependencies]
-log = "0.4.21"
-env_logger = "0.11.3"
