@@ -1,4 +1,4 @@
-use core::ops::Div;
+use core::{marker::PhantomData, ops::Div};
 
 use super::*;
 
@@ -70,4 +70,34 @@ impl<
         F: Add<Output = F> + Neg<Output = F> + Mul<Output = F> + Div + Default + Copy,
     > VectorSpace for Vector<M, F>
 {
+}
+
+#[derive(Clone, Copy, Default)]
+pub struct TrivialModule<R> {
+    pub(crate) _r: PhantomData<R>,
+}
+
+impl<R: Add + Neg + Mul + Default + Copy> Module for TrivialModule<R> {
+    type Ring = R;
+}
+
+impl<R: Copy + Default> Add for TrivialModule<R> {
+    type Output = Self;
+    fn add(self, _: Self) -> Self::Output {
+        Self { _r: PhantomData }
+    }
+}
+
+impl<R: Copy + Default> Neg for TrivialModule<R> {
+    type Output = Self;
+    fn neg(self) -> Self::Output {
+        Self { _r: PhantomData }
+    }
+}
+
+impl<R: Copy + Default> Mul<R> for TrivialModule<R> {
+    type Output = Self;
+    fn mul(self, _: R) -> Self::Output {
+        Self { _r: PhantomData }
+    }
 }

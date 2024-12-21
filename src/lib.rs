@@ -1,6 +1,6 @@
 #![allow(unstable_features)]
 #![allow(incomplete_features)]
-#![feature(generic_const_exprs)]
+#![feature(specialization)]
 #![no_std]
 
 use core::{

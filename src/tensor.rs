@@ -1,9 +1,11 @@
-use module::Module;
+use core::marker::PhantomData;
+
+use module::{Module, TrivialModule, Vector};
 
 use super::*;
 
 #[derive(Copy, Clone, Debug)]
-pub struct TensorProduct<A, B>
+pub struct Tensor<A, B>
 where
     A: Module,
     B: Module<Ring = A::Ring>,
@@ -12,7 +14,7 @@ where
     b: B,
 }
 
-impl<A, B> Add for TensorProduct<A, B>
+impl<A, B> Add for Tensor<A, B>
 where
     A: Module,
     B: Module<Ring = A::Ring>,
@@ -27,7 +29,7 @@ where
     }
 }
 
-impl<A, B> Neg for TensorProduct<A, B>
+impl<A, B> Neg for Tensor<A, B>
 where
     A: Module,
     B: Module<Ring = A::Ring>,
@@ -42,7 +44,7 @@ where
     }
 }
 
-impl<A, B> Mul<<Self as Module>::Ring> for TensorProduct<A, B>
+impl<A, B> Mul<<Self as Module>::Ring> for Tensor<A, B>
 where
     A: Module,
     B: Module<Ring = A::Ring>,
@@ -57,7 +59,7 @@ where
     }
 }
 
-impl<A, B> Module for TensorProduct<A, B>
+impl<A, B> Module for Tensor<A, B>
 where
     A: Module,
     B: Module<Ring = A::Ring>,
@@ -65,23 +67,41 @@ where
     type Ring = A::Ring;
 }
 
-impl<A, B> TensorProduct<A, B>
+impl<A> Tensor<A, TrivialModule<A::Ring>>
+where
+    A: Module + Copy,
+{
+    pub const fn append_trivial<B: Module<Ring = A::Ring> + Copy>(self, b: B) -> Tensor<A, B> {
+        let a = self.a;
+        Tensor { a, b }
+    }
+}
+
+impl<A, B> Tensor<A, B>
 where
     A: Module + Copy,
     B: Module<Ring = A::Ring> + Copy,
 {
-    pub const fn new(a: A, b: B) -> Self {
+    pub const fn product(a: A, b: B) -> Self {
         Self { a, b }
     }
 
-    pub const fn append<C: Module<Ring = A::Ring> + Copy>(
-        self,
-        c: C,
-    ) -> TensorProduct<A, TensorProduct<B, C>> {
+    pub const fn append<C: Module<Ring = A::Ring> + Copy>(self, c: C) -> Tensor<A, Tensor<B, C>> {
         let a = self.a;
         let b = self.b;
-        let prod = TensorProduct { a: b, b: c };
-        TensorProduct { a, b: prod }
+        let prod = Tensor { a: b, b: c };
+        Tensor { a, b: prod }
+    }
+}
+
+impl<const M: usize, F: Add<Output = F> + Neg<Output = F> + Mul<Output = F> + Default + Copy>
+    From<Vector<M, F>> for Tensor<Vector<M, F>, TrivialModule<F>>
+{
+    fn from(value: Vector<M, F>) -> Self {
+        Self {
+            a: value,
+            b: TrivialModule { _r: PhantomData },
+        }
     }
 }
 
@@ -96,16 +116,24 @@ mod tests {
         let a = Vector::<1, f64>::default();
         let b = Vector::<2, f64>::default();
         let c = Vector::<3, f64>::default();
-        let tensor = TensorProduct::new(a, b);
+        let tensor = Tensor::product(a, b);
         let tensor = tensor.append(c);
 
         let a = Vector::<1, f64>::default();
         let b = Vector::<2, f64>::default();
         let c = Vector::<3, f64>::default();
-        let tensor2 = TensorProduct::new(a, b);
+        let tensor2 = Tensor::product(a, b);
         let tensor2 = tensor2.append(c);
 
         let added = tensor + tensor2;
         dbg!(added);
+    }
+
+    #[test]
+    fn terminal() {
+        let a = Vector::<1, f64>::default();
+        let b = Vector::<2, f64>::default();
+        let tensor = Tensor::from(a);
+        let tensor = tensor.append_trivial(b);
     }
 }
