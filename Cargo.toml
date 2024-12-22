@@ -8,3 +8,6 @@ keywords = ["tensor", "algebra", "math", "macros"]
 license-file = "LICENSE"
 readme = "README.md"
 rust-version = "1.80.0"
+
+[dependencies]
+const-default = "1.0"

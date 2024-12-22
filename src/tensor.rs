@@ -94,8 +94,10 @@ where
     }
 }
 
-impl<const M: usize, F: Add<Output = F> + Neg<Output = F> + Mul<Output = F> + Default + Copy>
-    From<Vector<M, F>> for Tensor<Vector<M, F>, TrivialModule<F>>
+impl<
+        const M: usize,
+        F: Add<Output = F> + Neg<Output = F> + Mul<Output = F> + Default + ConstDefault + Copy,
+    > From<Vector<M, F>> for Tensor<Vector<M, F>, TrivialModule<F>>
 {
     fn from(value: Vector<M, F>) -> Self {
         Self {
@@ -113,15 +115,15 @@ mod tests {
 
     #[test]
     fn intro() {
-        let a = Vector::<1, f64>::default();
-        let b = Vector::<2, f64>::default();
-        let c = Vector::<3, f64>::default();
+        let a = Vector::<1, f64>::DEFAULT;
+        let b = Vector::<2, f64>::DEFAULT;
+        let c = Vector::<3, f64>::DEFAULT;
         let tensor = Tensor::product(a, b);
         let tensor = tensor.append(c);
 
-        let a = Vector::<1, f64>::default();
-        let b = Vector::<2, f64>::default();
-        let c = Vector::<3, f64>::default();
+        let a = Vector::<1, f64>::DEFAULT;
+        let b = Vector::<2, f64>::DEFAULT;
+        let c = Vector::<3, f64>::DEFAULT;
         let tensor2 = Tensor::product(a, b);
         let tensor2 = tensor2.append(c);
 
@@ -131,8 +133,8 @@ mod tests {
 
     #[test]
     fn terminal() {
-        let a = Vector::<1, f64>::default();
-        let b = Vector::<2, f64>::default();
+        let a = Vector::<1, f64>::DEFAULT;
+        let b = Vector::<2, f64>::DEFAULT;
         let tensor = Tensor::from(a);
         let tensor = tensor.append_trivial(b);
     }
