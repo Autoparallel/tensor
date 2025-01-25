@@ -8,7 +8,7 @@ use super::*;
 #[macro_export]
 macro_rules! tensor {
     ($name:ident, $($consts:ident),+) => {
-        // #[derive(extensor_macros::MultilinearMap)]
+        #[derive(MultilinearMap)]
         pub struct $name<$(const $consts: usize),+, F>
         where F: Default + Copy + AddAssign + Mul<F, Output = F>,
         {
@@ -27,7 +27,7 @@ macro_rules! tensor {
         where
             F: Default + Copy + Debug + AddAssign + Mul<F, Output = F>,
         {
-            fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
                 f.debug_struct(stringify!($name))
                     .field("coefficients", &self.coefficients)
                     .finish()
@@ -106,8 +106,6 @@ macro_rules! scalar_mul_tensor {
     };
 }
 
-tensor!(TensorTester, M, N, P);
-
 #[cfg(test)]
 mod tests {
 
@@ -169,7 +167,7 @@ mod tests {
         let mut tensor = Tensor2::<2, 3, f64>::default();
         tensor.coefficients.0[0].0[0] = 1.0;
         tensor.coefficients.0[1].0[1] = 1.0;
-        dbg!(tensor);
+        dbg!(&tensor);
 
         //        / -1 \
         // v_0 =  \  1 /
@@ -193,8 +191,8 @@ mod tests {
         // then the next is:
         //                                     / 1 \
         // tensor.map(v_0, v_1) = < -1    1 >  \ 2 /   = -1 + 2 = 1
-        // let output = tensor.multilinear_map(v_0, v_1);
-        // info!("output: {:?}", output);
-        // assert_eq!(output, 1.0);
+        let output = tensor.multilinear_map(v_0, v_1);
+        dbg!(output);
+        assert_eq!(output, 1.0);
     }
 }

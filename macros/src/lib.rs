@@ -37,7 +37,7 @@ pub fn multilinear_map_derive(input: TokenStream) -> TokenStream {
         //
         // let param_name = Ident::new(&format!("v_{}", i), ident.span());
         let param_name = Ident::new(&format!("v_{}", i), Span::call_site());
-        quote! { #param_name: V<#ident, F> }
+        quote! { #param_name: Vector<#ident, F> }
     });
 
     let loop_indices: Vec<_> = (0..const_generics.len())
