@@ -86,3 +86,35 @@ pub fn multilinear_map_derive(input: TokenStream) -> TokenStream {
 
     TokenStream::from(expanded)
 }
+
+use syn::LitInt;
+
+#[proc_macro]
+pub fn tensor(input: TokenStream) -> TokenStream {
+    let n: usize = input.to_string().parse().expect("Expected a usize");
+
+    // Generate const generic parameters (N0, N1, ..., N{n-1})
+    let const_params = (0..n).map(|i| {
+        let ident = Ident::new(&format!("N{}", i), proc_macro2::Span::call_site());
+        quote! { const #ident: usize, }
+    });
+
+    // Generate the coefficients type (Vector<N0, Vector<N1, ..., Vector<N{n-1},
+    // F>>)
+    let coefficients_type = (0..n).rev().fold(quote! { F }, |acc, i| {
+        let ident = Ident::new(&format!("N{}", i), proc_macro2::Span::call_site());
+        quote! { Vector<#ident, #acc> }
+    });
+
+    // Generate the struct definition
+    let expanded = quote! {
+        pub struct Tensor<#(#const_params)* F>
+        where
+            F: Default + Copy + AddAssign + Mul<F, Output = F>,
+        {
+            pub coefficients: #coefficients_type,
+        }
+    };
+
+    expanded.into()
+}

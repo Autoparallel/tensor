@@ -8,7 +8,7 @@ use core::{
 pub mod module;
 pub mod tensor;
 
-pub use extensor_macros::MultilinearMap;
+pub use extensor_macros::{tensor, MultilinearMap};
 
 #[cfg(test)]
 #[macro_use]
