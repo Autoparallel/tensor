@@ -59,6 +59,17 @@ macro_rules! tensor {
                 result
             }
         }
+
+        impl<$(const $consts: usize),+, F> $name<$($consts),+, F>
+        where
+            F: Mul<Output = F> + Copy + Default + AddAssign,{
+            pub const fn contract<const POS: usize, const DIM: usize,>(&self, v: Vector<DIM, F>) {
+                match POS {
+                    _ => {}
+                }
+            }
+        }
+
     }
 }
 
@@ -194,5 +205,17 @@ mod tests {
         let output = tensor.multilinear_map(v_0, v_1);
         dbg!(output);
         assert_eq!(output, 1.0);
+    }
+
+    #[test]
+    fn test_contraction() {
+        let mut tensor = Tensor3::<2, 3, 4, f64>::default();
+        // Fill tensor with some values...
+
+        let v = Vector::<2, f64>::default();
+        // Contract along M dimension
+        let contracted = tensor.contract::<0, 2>(v);
+
+        // contracted is now a Tensor3WithoutM<3,4,f64>
     }
 }
