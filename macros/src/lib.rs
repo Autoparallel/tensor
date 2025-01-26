@@ -87,8 +87,6 @@ pub fn multilinear_map_derive(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-use syn::LitInt;
-
 #[proc_macro]
 pub fn tensor(input: TokenStream) -> TokenStream {
     let n: usize = input.to_string().parse().expect("Expected a usize");
@@ -99,6 +97,18 @@ pub fn tensor(input: TokenStream) -> TokenStream {
         quote! { const #ident: usize, }
     });
 
+    // Collect const_params into a Vec to reuse it
+    let const_params_vec: Vec<_> = const_params.collect();
+
+    // Generate const generic parameters (N0, N1, ..., N{n-1})
+    let constants = (0..n).map(|i| {
+        let ident = Ident::new(&format!("N{}", i), proc_macro2::Span::call_site());
+        quote! { #ident, }
+    });
+
+    // Collect const_params into a Vec to reuse it
+    let constants_vec: Vec<_> = constants.collect();
+
     // Generate the coefficients type (Vector<N0, Vector<N1, ..., Vector<N{n-1},
     // F>>)
     let coefficients_type = (0..n).rev().fold(quote! { F }, |acc, i| {
@@ -108,11 +118,59 @@ pub fn tensor(input: TokenStream) -> TokenStream {
 
     // Generate the struct definition
     let expanded = quote! {
-        pub struct Tensor<#(#const_params)* F>
+        pub struct Tensor<#(#const_params_vec)* F>
         where
             F: Default + Copy + AddAssign + Mul<F, Output = F>,
         {
             pub coefficients: #coefficients_type,
+        }
+
+        impl<#(#const_params_vec)* F> Default for Tensor<#(#constants_vec)* F>
+        where
+            F: Default + Copy + AddAssign + Mul<F, Output = F>,
+        {
+            fn default() -> Self {
+                Self {
+                    coefficients: <#coefficients_type>::default(),
+                }
+            }
+        }
+
+        impl<#(#const_params_vec)* F> std::fmt::Debug for Tensor<#(#constants_vec)* F>
+        where
+            F: Default + Copy + std::fmt::Debug + AddAssign + Mul<F, Output = F>,
+        {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                f.debug_struct("Tensor")
+                    .field("coefficients", &self.coefficients)
+                    .finish()
+            }
+        }
+
+        impl<#(#const_params_vec)* F> std::ops::Add for Tensor<#(#constants_vec)* F>
+        where
+            F: std::ops::Add<Output = F> + Copy + Default + AddAssign + Mul<F, Output = F>,
+        {
+            type Output = Self;
+
+            fn add(self, other: Self) -> Self::Output {
+                Self {
+                    coefficients: self.coefficients + other.coefficients,
+                }
+            }
+        }
+
+        impl<#(#const_params_vec)* F> std::ops::Mul<F> for Tensor<#(#constants_vec)* F>
+        where
+            F: std::ops::Mul<Output = F> + Copy + Default + AddAssign,
+        {
+            type Output = Self;
+
+            fn mul(self, scalar: F) -> Self::Output {
+                Self {
+                    coefficients:  self.coefficients * scalar,
+                }
+            }
         }
     };
 

@@ -48,12 +48,28 @@ impl<const M: usize, F: Neg<Output = F> + Default + Copy> Neg for Vector<M, F> {
     }
 }
 
-impl<const M: usize, F: Mul<Output = F> + Default + Copy> Mul<F> for Vector<M, F> {
+// impl<const M: usize, F: Mul<Output = F> + Default + Copy> Mul<F> for
+// Vector<M, F> {     type Output = Self;
+//     fn mul(self, scalar: F) -> Self::Output {
+//         let mut scalar_multiple = Self::default();
+//         for i in 0..M {
+//             scalar_multiple.0[i] = scalar * self.0[i];
+//         }
+//         scalar_multiple
+//     }
+// }
+
+impl<const M: usize, F, Inner> Mul<F> for Vector<M, Inner>
+where
+    F: Mul<Output = F> + Copy + Default,
+    Inner: Mul<F, Output = Inner> + Default + Copy,
+{
     type Output = Self;
+
     fn mul(self, scalar: F) -> Self::Output {
         let mut scalar_multiple = Self::default();
         for i in 0..M {
-            scalar_multiple.0[i] = scalar * self.0[i];
+            scalar_multiple.0[i] = self.0[i] * scalar;
         }
         scalar_multiple
     }
