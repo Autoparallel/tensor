@@ -20,17 +20,32 @@ tensor!(2);
 impl<const N0: usize, const N1: usize, F: Default + Copy + AddAssign + Mul<F, Output = F>>
     Tensor<N0, N1, F>
 {
-    pub fn contract<const SLICE: usize, const DIM: usize>(vector: Vector<DIM, F>) {
+    pub fn contract<const SLICE: usize, const DIM: usize>(&self, vector: Vector<DIM, F>) -> Self
+    where
+        [(); (SLICE < 2) as usize]:,
+        [(); (SLICE == 0) as usize * ((DIM == N0) as usize)
+            + (SLICE == 1) as usize * ((DIM == N1) as usize)
+            - 1]:,
+    {
         todo!()
     }
 }
+
+// pub const fn check_range<const VALENCE: usize, const SLICE: usize, const DIM:
+// usize>(     arr: [usize; VALENCE],
+// ) -> bool
+// where
+//     [(); (SLICE < VALENCE) as usize]:,
+// {
+//     arr[SLICE] == DIM
+// }
 
 #[cfg(test)]
 mod tests {
 
     use super::*;
 
-    tensor!(2);
+    // tensor!(2);
 
     #[test]
     fn create_arbitrary_tensor() {
@@ -110,21 +125,14 @@ mod tests {
         assert_eq!(output, 1.0);
     }
 
-    // #[test]
-    // fn test_contraction() {
-    //     let mut tensor = Tensor3::<2, 3, 4, f64>::default();
-    //     // Fill tensor with some values...
+    #[test]
+    fn test_contraction() {
+        let mut tensor = Tensor::<2, 3, f64>::default();
 
-    //     let v = Vector::<2, f64>::default();
-    //     // Contract along M dimension
-    //     let contracted = tensor.contract::<0, 2>(v);
+        // Fill tensor with some values...
 
-    //     // contracted is now a Tensor3WithoutM<3,4,f64>
-    // }
-
-    // #[test]
-    // fn dummy() {
-    //     let my_tuple: (usize, usize, usize) = consts!(3);
-    //     dbg!(my_tuple);
-    // }
+        let v = Vector::<2, f64>::default();
+        // Contract along M dimension
+        let contracted = tensor.contract::<0, 2>(v);
+    }
 }
