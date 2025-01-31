@@ -116,8 +116,9 @@ pub fn tensor(input: TokenStream) -> TokenStream {
         quote! { Vector<#ident, #acc> }
     });
 
-    // Generate the struct definition
+    // Generate the struct definition and implementations
     let expanded = quote! {
+        #[derive(MultilinearMap)]
         pub struct Tensor<#(#const_params_vec)* F>
         where
             F: Default + Copy + AddAssign + Mul<F, Output = F>,
@@ -136,20 +137,20 @@ pub fn tensor(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl<#(#const_params_vec)* F> std::fmt::Debug for Tensor<#(#constants_vec)* F>
+        impl<#(#const_params_vec)* F> core::fmt::Debug for Tensor<#(#constants_vec)* F>
         where
-            F: Default + Copy + std::fmt::Debug + AddAssign + Mul<F, Output = F>,
+            F: Default + Copy + core::fmt::Debug + AddAssign + Mul<F, Output = F>,
         {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
                 f.debug_struct("Tensor")
                     .field("coefficients", &self.coefficients)
                     .finish()
             }
         }
 
-        impl<#(#const_params_vec)* F> std::ops::Add for Tensor<#(#constants_vec)* F>
+        impl<#(#const_params_vec)* F> core::ops::Add for Tensor<#(#constants_vec)* F>
         where
-            F: std::ops::Add<Output = F> + Copy + Default + AddAssign + Mul<F, Output = F>,
+            F: core::ops::Add<Output = F> + Copy + Default + AddAssign + Mul<F, Output = F>,
         {
             type Output = Self;
 
@@ -160,9 +161,9 @@ pub fn tensor(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl<#(#const_params_vec)* F> std::ops::Mul<F> for Tensor<#(#constants_vec)* F>
+        impl<#(#const_params_vec)* F> core::ops::Mul<F> for Tensor<#(#constants_vec)* F>
         where
-            F: std::ops::Mul<Output = F> + Copy + Default + AddAssign,
+            F: core::ops::Mul<Output = F> + Copy + Default + AddAssign,
         {
             type Output = Self;
 

@@ -15,6 +15,16 @@ use super::*;
 //     }
 // }
 
+tensor!(2);
+
+impl<const N0: usize, const N1: usize, F: Default + Copy + AddAssign + Mul<F, Output = F>>
+    Tensor<N0, N1, F>
+{
+    pub fn contract<const SLICE: usize, const DIM: usize>(vector: Vector<DIM, F>) {
+        todo!()
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -64,41 +74,41 @@ mod tests {
         dbg!(tensor2.coefficients);
     }
 
-    // #[test]
-    // fn multilinear_map() {
-    //     //           / 1    0     0 \
-    //     // tensor =  \ 0    1     0 /
-    //     let mut tensor = Tensor2::<2, 3, f64>::default();
-    //     tensor.coefficients.0[0].0[0] = 1.0;
-    //     tensor.coefficients.0[1].0[1] = 1.0;
-    //     dbg!(&tensor);
+    #[test]
+    fn multilinear_map() {
+        //           / 1    0     0 \
+        // tensor =  \ 0    1     0 /
+        let mut tensor = Tensor::<2, 3, f64>::default();
+        tensor.coefficients.0[0].0[0] = 1.0;
+        tensor.coefficients.0[1].0[1] = 1.0;
+        dbg!(&tensor);
 
-    //     //        / -1 \
-    //     // v_0 =  \  1 /
-    //     let mut v_0 = Vector::<2, _>::default();
-    //     v_0.0[0] = -1.0;
-    //     v_0.0[1] = 1.0;
-    //     dbg!(v_0);
+        //        / -1 \
+        // v_0 =  \  1 /
+        let mut v_0 = Vector::<2, _>::default();
+        v_0.0[0] = -1.0;
+        v_0.0[1] = 1.0;
+        dbg!(v_0);
 
-    //     //        / 1 \
-    //     //       |  2  |
-    //     // v_1 =  \ 3 /
-    //     let mut v_1 = Vector::<3, _>::default();
-    //     v_1.0[0] = 1.0;
-    //     v_1.0[1] = 2.0;
-    //     v_1.0[2] = 3.0;
-    //     dbg!(v_1);
+        //        / 1 \
+        //       |  2  |
+        // v_1 =  \ 3 /
+        let mut v_1 = Vector::<3, _>::default();
+        v_1.0[0] = 1.0;
+        v_1.0[1] = 2.0;
+        v_1.0[2] = 3.0;
+        dbg!(v_1);
 
-    //     //                      / 1 \
-    //     // tensor.map(_,v_1) =  \ 2 /
-    //     //
-    //     // then the next is:
-    //     //                                     / 1 \
-    //     // tensor.map(v_0, v_1) = < -1    1 >  \ 2 /   = -1 + 2 = 1
-    //     let output = tensor.multilinear_map(v_0, v_1);
-    //     dbg!(output);
-    //     assert_eq!(output, 1.0);
-    // }
+        //                      / 1 \
+        // tensor.map(_,v_1) =  \ 2 /
+        //
+        // then the next is:
+        //                                     / 1 \
+        // tensor.map(v_0, v_1) = < -1    1 >  \ 2 /   = -1 + 2 = 1
+        let output = tensor.multilinear_map(v_0, v_1);
+        dbg!(output);
+        assert_eq!(output, 1.0);
+    }
 
     // #[test]
     // fn test_contraction() {
