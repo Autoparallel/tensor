@@ -21,7 +21,7 @@ impl<
         const N0: usize,
         const N1: usize,
         const N2: usize,
-        F: Default + Copy + AddAssign + Mul<F, Output = F>,
+        F: Default + Copy + AddAssign + Mul<F, Output = F> + core::ops::Add<Output = F>,
     > Tensor<N0, N1, N2, F>
 {
     pub fn contract<const SLICE: usize, const DIM: usize>(
@@ -40,7 +40,46 @@ impl<
             + (SLICE == 2) as usize * ((DIM == N2) as usize)
             - 1]:,
     {
-        todo!()
+        let mut result = Tensor::default();
+
+        match SLICE {
+            0 => {
+                for i1 in 0..N1 {
+                    for i2 in 0..N2 {
+                        let mut sum = F::default();
+                        for i0 in 0..N0 {
+                            sum = sum + self.coefficients.0[i0].0[i1].0[i2] * vector.0[i0];
+                        }
+                        result.coefficients.0[0].0[i1].0[i2] = sum;
+                    }
+                }
+            }
+            1 => {
+                for i0 in 0..N0 {
+                    for i2 in 0..N2 {
+                        let mut sum = F::default();
+                        for i1 in 0..N1 {
+                            sum = sum + self.coefficients.0[i0].0[i1].0[i2] * vector.0[i1];
+                        }
+                        result.coefficients.0[i0].0[0].0[i2] = sum;
+                    }
+                }
+            }
+            2 => {
+                for i0 in 0..N0 {
+                    for i1 in 0..N1 {
+                        let mut sum = F::default();
+                        for i2 in 0..N2 {
+                            sum = sum + self.coefficients.0[i0].0[i1].0[i2] * vector.0[i2];
+                        }
+                        result.coefficients.0[i0].0[i1].0[0] = sum;
+                    }
+                }
+            }
+            _ => unreachable!(), // Our where clause ensures this
+        }
+
+        result
     }
 }
 
@@ -147,5 +186,60 @@ mod tests {
         let v = Vector::<4, f64>::default();
         // Contract along M dimension
         let contracted: Tensor<2, 3, 0, f64> = tensor.contract::<2, 4>(v);
+    }
+
+    #[test]
+    fn test_rank3_contraction() {
+        // Create a 2x3x2 tensor
+        let mut tensor = Tensor::<2, 3, 2, f64>::default();
+
+        // Fill tensor with some known values
+        // Using a simple pattern: tensor[i][j][k] = i + j + k
+        for i in 0..2 {
+            for j in 0..3 {
+                for k in 0..2 {
+                    tensor.coefficients.0[i].0[j].0[k] = (i + j + k) as f64;
+                }
+            }
+        }
+
+        // Test contraction along slice 0 (first dimension)
+        let v0 = Vector([1.0, 2.0]); // 2-dimensional vector for N0
+        let contracted0: Tensor<0, 3, 2, f64> = tensor.contract::<0, 2>(v0);
+        // Expected: contracted0[j][k] = sum_i(tensor[i][j][k] * v0[i])
+
+        // Test contraction along slice 1 (second dimension)
+        let v1 = Vector([1.0, 2.0, 3.0]); // 3-dimensional vector for N1
+        let contracted1: Tensor<2, 0, 2, f64> = tensor.contract::<1, 3>(v1);
+        // Expected: contracted1[i][k] = sum_j(tensor[i][j][k] * v1[j])
+
+        // Test contraction along slice 2 (third dimension)
+        let v2 = Vector([1.0, 2.0]); // 2-dimensional vector for N2
+        let contracted2: Tensor<2, 3, 0, f64> = tensor.contract::<2, 2>(v2);
+        // Expected: contracted2[i][j] = sum_k(tensor[i][j][k] * v2[k])
+
+        // Verify specific values
+        // Let's check one value from each contraction
+
+        // For slice 0: contracted0[1][1] should be
+        // tensor[0][1][1] * v0[0] + tensor[1][1][1] * v0[1]
+        assert_eq!(
+            contracted0.coefficients.0[0].0[1].0[1],
+            (2.0 * 1.0 + 3.0 * 2.0)
+        );
+
+        // For slice 1: contracted1[1][1] should be
+        // tensor[1][0][1] * v1[0] + tensor[1][1][1] * v1[1] + tensor[1][2][1] * v1[2]
+        assert_eq!(
+            contracted1.coefficients.0[1].0[0].0[1],
+            (2.0 * 1.0 + 3.0 * 2.0 + 4.0 * 3.0)
+        );
+
+        // For slice 2: contracted2[1][2] should be
+        // tensor[1][2][0] * v2[0] + tensor[1][2][1] * v2[1]
+        assert_eq!(
+            contracted2.coefficients.0[1].0[2].0[0],
+            (3.0 * 1.0 + 4.0 * 2.0)
+        );
     }
 }
