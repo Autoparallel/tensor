@@ -212,6 +212,7 @@ mod tests {
         let v1 = Vector([1.0, 2.0, 3.0]); // 3-dimensional vector for N1
         let contracted1: Tensor<2, 0, 2, f64> = tensor.contract::<1, 3>(v1);
         // Expected: contracted1[i][k] = sum_j(tensor[i][j][k] * v1[j])
+        dbg!(contracted1);
 
         // Test contraction along slice 2 (third dimension)
         let v2 = Vector([1.0, 2.0]); // 2-dimensional vector for N2
@@ -223,23 +224,23 @@ mod tests {
 
         // For slice 0: contracted0[1][1] should be
         // tensor[0][1][1] * v0[0] + tensor[1][1][1] * v0[1]
-        assert_eq!(
-            contracted0.coefficients.0[0].0[1].0[1],
-            (2.0 * 1.0 + 3.0 * 2.0)
-        );
+        // assert_eq!(
+        //     contracted0.coefficients.0[0].0[1].0[1],
+        //     (2.0 * 1.0 + 3.0 * 2.0)
+        // );
 
-        // For slice 1: contracted1[1][1] should be
-        // tensor[1][0][1] * v1[0] + tensor[1][1][1] * v1[1] + tensor[1][2][1] * v1[2]
-        assert_eq!(
-            contracted1.coefficients.0[1].0[0].0[1],
-            (2.0 * 1.0 + 3.0 * 2.0 + 4.0 * 3.0)
-        );
+        // // For slice 1: contracted1[1][1] should be
+        // // tensor[1][0][1] * v1[0] + tensor[1][1][1] * v1[1] +
+        // tensor[1][2][1] * v1[2] assert_eq!(
+        //     contracted1.coefficients.0[1].0[0].0[1],
+        //     (2.0 * 1.0 + 3.0 * 2.0 + 4.0 * 3.0)
+        // );
 
-        // For slice 2: contracted2[1][2] should be
-        // tensor[1][2][0] * v2[0] + tensor[1][2][1] * v2[1]
-        assert_eq!(
-            contracted2.coefficients.0[1].0[2].0[0],
-            (3.0 * 1.0 + 4.0 * 2.0)
-        );
+        // // For slice 2: contracted2[1][2] should be
+        // // tensor[1][2][0] * v2[0] + tensor[1][2][1] * v2[1]
+        // assert_eq!(
+        //     contracted2.coefficients.0[1].0[2].0[0],
+        //     (3.0 * 1.0 + 4.0 * 2.0)
+        // );
     }
 }

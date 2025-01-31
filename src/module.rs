@@ -14,6 +14,7 @@ where
 {
 }
 
+// TODO: maybe use `pub MaybeUninit<[F; M]>`
 #[derive(Copy, Clone, Debug)]
 pub struct Vector<const M: usize, F>(pub [F; M]);
 
