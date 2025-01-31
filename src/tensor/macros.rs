@@ -34,7 +34,7 @@ impl<
         F,
     >
     where
-        [(); (SLICE < 3) as usize]:,
+        [(); (SLICE < 3) as usize - 1]:,
         [(); (SLICE == 0) as usize * ((DIM == N0) as usize)
             + (SLICE == 1) as usize * ((DIM == N1) as usize)
             + (SLICE == 2) as usize * ((DIM == N2) as usize)
@@ -144,8 +144,8 @@ mod tests {
 
         // Fill tensor with some values...
 
-        let v = Vector::<2, f64>::default();
+        let v = Vector::<4, f64>::default();
         // Contract along M dimension
-        let contracted: Tensor<0, 3, 4, f64> = tensor.contract::<0, 2>(v);
+        let contracted: Tensor<2, 3, 0, f64> = tensor.contract::<2, 4>(v);
     }
 }
