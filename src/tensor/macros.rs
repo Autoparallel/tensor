@@ -20,7 +20,10 @@ tensor!(2);
 impl<const N0: usize, const N1: usize, F: Default + Copy + AddAssign + Mul<F, Output = F>>
     Tensor<N0, N1, F>
 {
-    pub fn contract<const SLICE: usize, const DIM: usize>(&self, vector: Vector<DIM, F>) -> Self
+    pub fn contract<const SLICE: usize, const DIM: usize>(
+        &self,
+        vector: Vector<DIM, F>,
+    ) -> Tensor<{ (1 - (SLICE == 0) as usize) * N0 }, { (1 - (SLICE == 1) as usize) * N1 }, F>
     where
         [(); (SLICE < 2) as usize]:,
         [(); (SLICE == 0) as usize * ((DIM == N0) as usize)
@@ -131,8 +134,8 @@ mod tests {
 
         // Fill tensor with some values...
 
-        let v = Vector::<2, f64>::default();
+        let v = Vector::<3, f64>::default();
         // Contract along M dimension
-        let contracted = tensor.contract::<0, 2>(v);
+        let contracted: Tensor<2, 0, f64> = tensor.contract::<1, 3>(v);
     }
 }
