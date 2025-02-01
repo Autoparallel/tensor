@@ -116,9 +116,29 @@ pub fn tensor(input: TokenStream) -> TokenStream {
         quote! { Vector<#ident, #acc> }
     });
 
+    // Add multilinear_map implementation
+    let input_params = (0..n).map(|i| {
+        let param_name = Ident::new(&format!("v_{}", i), Span::call_site());
+        let dim_name = Ident::new(&format!("N{}", i), Span::call_site());
+        quote! { #param_name: Vector<#dim_name, F> }
+    });
+
+    let loop_indices: Vec<_> = (0..n)
+        .map(|i| Ident::new(&format!("i_{}", i), Span::call_site()))
+        .collect();
+
+    // Build nested scalar products
+    let mut inner_computation = quote! { self.coefficients };
+    for (i, _index) in loop_indices.iter().enumerate() {
+        let v_name = Ident::new(&format!("v_{}", i), Span::call_site());
+        inner_computation = quote! {
+            #inner_computation.scalar_product(#v_name)
+        };
+    }
+
     // Generate the struct definition and implementations
     let expanded = quote! {
-        #[derive(MultilinearMap)]
+        // #[derive(MultilinearMap)]
         pub struct Tensor<#(#const_params_vec)* F>
         where
             F: Default + Copy + AddAssign + Mul<F, Output = F>,
@@ -171,6 +191,15 @@ pub fn tensor(input: TokenStream) -> TokenStream {
                 Self {
                     coefficients:  self.coefficients * scalar,
                 }
+            }
+        }
+
+        impl<#(#const_params_vec)* F> Tensor<#(#constants_vec)* F>
+        where
+            F: Default + Copy + AddAssign + Mul<F, Output = F> + Add<Output = F>,
+        {
+            pub fn multilinear_map(&self, #(#input_params),*) -> F {
+                #inner_computation
             }
         }
     };

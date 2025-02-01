@@ -1,19 +1,6 @@
-// use module::Vector;
+use module::Vector;
 
-// use super::*;
-
-// //         impl<$(const $consts: usize),+, F> $name<$($consts),+, F>
-// //         where
-// //             F: Mul<Output = F> + Copy + Default + AddAssign,{
-// //             pub const fn contract<const POS: usize, const DIM:
-// usize,>(&self, // v: Vector<DIM, F>) {                 match POS {
-// //                     _ => {}
-// //                 }
-// //             }
-// //         }
-
-// //     }
-// // }
+use super::*;
 
 // tensor!(3);
 
