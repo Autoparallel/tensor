@@ -11,3 +11,6 @@ rust-version = "1.80.0"
 
 [dependencies]
 extensor-macros = { path = "macros/", version = "0.1.0" }
+
+[dev-dependencies]
+rstest = { version = "0.24", default-features = false }
