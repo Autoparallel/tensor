@@ -1,16 +1,22 @@
-use module::Vector;
+use module::{ScalarProduct, Vector};
 
 use super::*;
 
-// tensor!(3);
+tensor!(3);
 
 // impl<
 //         const N0: usize,
 //         const N1: usize,
 //         const N2: usize,
-//         F: Default + Copy + AddAssign + Mul<F, Output = F> +
-// core::ops::Add<Output = F>,
+//         F: ScalarProduct
+//             + Default
+//             + Copy
+//             + AddAssign
+//             + Mul<F, Output = F>
+//             + core::ops::Add<Output = F>,
 //     > Tensor<N0, N1, N2, F>
+// where
+//     F::Inner: Add<Output = F::Inner> + Default + Copy,
 // {
 //     pub fn contract<const SLICE: usize, const DIM: usize>(
 //         &self,
@@ -70,15 +76,6 @@ use super::*;
 //         result
 //     }
 // }
-
-// // pub const fn check_range<const VALENCE: usize, const SLICE: usize, const
-// DIM: // usize>(     arr: [usize; VALENCE],
-// // ) -> bool
-// // where
-// //     [(); (SLICE < VALENCE) as usize]:,
-// // {
-// //     arr[SLICE] == DIM
-// // }
 
 // #[cfg(test)]
 // mod tests {

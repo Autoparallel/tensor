@@ -120,7 +120,12 @@ pub fn tensor(input: TokenStream) -> TokenStream {
     let input_params = (0..n).map(|i| {
         let param_name = Ident::new(&format!("v_{}", i), Span::call_site());
         let dim_name = Ident::new(&format!("N{}", i), Span::call_site());
-        quote! { #param_name: Vector<#dim_name, F> }
+        // Build the nested type for each parameter
+        let param_type = (i + 1..n).rev().fold(quote! { F }, |acc, j| {
+            let next_dim = Ident::new(&format!("N{}", j), Span::call_site());
+            quote! { Vector<#next_dim, #acc> }
+        });
+        quote! { #param_name: &Vector<#dim_name, #param_type> }
     });
 
     let loop_indices: Vec<_> = (0..n)
@@ -138,17 +143,18 @@ pub fn tensor(input: TokenStream) -> TokenStream {
 
     // Generate the struct definition and implementations
     let expanded = quote! {
-        // #[derive(MultilinearMap)]
         pub struct Tensor<#(#const_params_vec)* F>
         where
-            F: Default + Copy + AddAssign + Mul<F, Output = F>,
+            F: ScalarProduct + Copy + Default,
+            F::Inner: Add<Output = F::Inner> + Default + Copy,
         {
             pub coefficients: #coefficients_type,
         }
 
         impl<#(#const_params_vec)* F> Default for Tensor<#(#constants_vec)* F>
         where
-            F: Default + Copy + AddAssign + Mul<F, Output = F>,
+            F: ScalarProduct + Copy + Default,
+            F::Inner: Add<Output = F::Inner> + Default + Copy,
         {
             fn default() -> Self {
                 Self {
@@ -159,7 +165,8 @@ pub fn tensor(input: TokenStream) -> TokenStream {
 
         impl<#(#const_params_vec)* F> core::fmt::Debug for Tensor<#(#constants_vec)* F>
         where
-            F: Default + Copy + core::fmt::Debug + AddAssign + Mul<F, Output = F>,
+            F: ScalarProduct + Copy + Default + Debug,
+            F::Inner: Add<Output = F::Inner> + Default + Copy,
         {
             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
                 f.debug_struct("Tensor")
@@ -170,7 +177,8 @@ pub fn tensor(input: TokenStream) -> TokenStream {
 
         impl<#(#const_params_vec)* F> core::ops::Add for Tensor<#(#constants_vec)* F>
         where
-            F: core::ops::Add<Output = F> + Copy + Default + AddAssign + Mul<F, Output = F>,
+            F: ScalarProduct + Default + Copy + Add<Output = F>,
+            F::Inner: Add<Output = F::Inner> + Default + Copy,
         {
             type Output = Self;
 
@@ -183,7 +191,8 @@ pub fn tensor(input: TokenStream) -> TokenStream {
 
         impl<#(#const_params_vec)* F> core::ops::Mul<F> for Tensor<#(#constants_vec)* F>
         where
-            F: core::ops::Mul<Output = F> + Copy + Default + AddAssign,
+            F: ScalarProduct + core::ops::Mul<Output = F> + Copy + Default + AddAssign,
+            F::Inner: Add<Output = F::Inner> + Default + Copy,
         {
             type Output = Self;
 
@@ -194,14 +203,15 @@ pub fn tensor(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl<#(#const_params_vec)* F> Tensor<#(#constants_vec)* F>
-        where
-            F: Default + Copy + AddAssign + Mul<F, Output = F> + Add<Output = F>,
-        {
-            pub fn multilinear_map(&self, #(#input_params),*) -> F {
-                #inner_computation
-            }
-        }
+        // impl<#(#const_params_vec)* F> Tensor<#(#constants_vec)* F>
+        // where
+        //     F: ScalarProduct + Default + Copy + AddAssign + Mul<F, Output = F> + Add<Output = F>,
+        //     F::Inner: Add<Output = F::Inner> + Default + Copy,
+        // {
+        //     pub fn multilinear_map(&self, #(#input_params),*) -> F {
+        //         #inner_computation
+        //     }
+        // }
     };
 
     expanded.into()
